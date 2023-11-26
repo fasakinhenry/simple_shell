@@ -535,6 +535,6 @@ Simple shell 1.0 +
 ## Contributors
 
 * Fasakin Henry - Fullstack web developer In Nigeria
-* Alex Ohiomame - Backend developer in Nigeria
+* Solomon Olungweonwi - Web developer in Nigeria
 
 Copyrights Reserved 2023
