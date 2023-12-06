@@ -1,53 +1,33 @@
-#include "main.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
-/**
- * _strcpy - Copies a string
- * @dest: Destination buffer
- * @src: Source string
- *
- * Return: Pointer to the destination buffer
- */
+#define INITIAL_BUFFER_SIZE 1024
+
 char *_strcpy(char *dest, const char *src)
 {
-    char *ptr = dest;
-
-    if (dest == NULL || src == NULL)
-        return NULL;
-
-    while (*src != '\0')
-    {
-        *dest = *src;
-        dest++;
-        src++;
-    }
-
-    *dest = '\0';  /* Null-terminate the destination string */
-    return ptr;
+	char *ptr = dest;
+	if (dest == NULL || src == NULL)
+		return NULL;
+	while ((*dest++ = *src++))
+		;
+	return ptr;
 }
 
-/**
- * _getline - custom getline function
- * @lineptr: pointer to the buffer storing the line
- * @n: pointer to the size of the buffer
- * @stream: input stream
- *
- * Return: the number of characters read (including newline),
- * or -1 on failure, 0 on EOF
- */
 ssize_t _getline(char **lineptr, size_t *n, FILE *stream)
 {
 	size_t bufsize = 0;
-	int c;
 	ssize_t chars_read = 0;
-
+	int c;
 	if (lineptr == NULL || n == NULL)
-	{
 		return -1;
-	}
 
 	if (*lineptr == NULL || *n == 0)
 	{
-		bufsize = 120; /* Initial buffer size, adjust as needed */
+		bufsize = INITIAL_BUFFER_SIZE;
 		*lineptr = malloc(bufsize);
 
 		if (*lineptr == NULL)
@@ -65,42 +45,86 @@ ssize_t _getline(char **lineptr, size_t *n, FILE *stream)
 
 		if (chars_read == (ssize_t)(*n - 1))
 		{
-			bufsize += 120; /* Adjust as needed */
-			*lineptr = realloc(*lineptr, bufsize);
+			char *temp = realloc(*lineptr, bufsize + INITIAL_BUFFER_SIZE);
 
-			if (*lineptr == NULL)
+			if (temp == NULL)
 			{
 				perror("Failed to reallocate memory");
 				exit(EXIT_FAILURE);
 			}
 
-			*n = bufsize;
+			*lineptr = temp;
+			*n += INITIAL_BUFFER_SIZE;
 		}
 
 		if (c == '\n')
-		{
 			break;
-		}
 	}
 
 	if (chars_read == 0)
-	{
-		return 0; /* EOF */
-	}
+		return 0;
 
 	(*lineptr)[chars_read] = '\0';
-
 	return chars_read;
 }
 
-void display_prompt();
-char **get_input();
+void display_prompt()
+{
+	write(STDOUT_FILENO, "$ ", 2);
+}
+
+char **parse_input(char *input, size_t *arg_count)
+{
+	char **args = NULL;
+	char *token = strtok(input, " \n");
+
+	while (token != NULL)
+	{
+		args = realloc(args, (*arg_count + 1) * sizeof(char *));
+		args[*arg_count] = strdup(token);
+		(*arg_count)++;
+
+		token = strtok(NULL, " \n");
+	}
+
+	args = realloc(args, (*arg_count + 1) * sizeof(char *));
+	args[*arg_count] = NULL;
+
+	return args;
+}
+
+char **get_input(void)
+{
+	ssize_t response;
+	size_t arg_count = 0, len = 0;
+	char *input = NULL, **args = NULL;
+
+	response = _getline(&input, &len, stdin);
+
+	if (response == -1)
+	{
+		free(input);
+		exit(EXIT_FAILURE);
+	}
+	else if (response == 0)
+	{
+		free(input);
+		exit(EXIT_SUCCESS);
+	}
+
+	args = parse_input(input, &arg_count);
+
+	free(input);
+
+	return args;
+}
 
 int main()
 {
 	char **args;
 	pid_t pid;
 	int status;
+	size_t i;
 
 	while (1)
 	{
@@ -109,9 +133,7 @@ int main()
 		args = get_input();
 
 		if (args == NULL)
-		{
 			continue;
-		}
 
 		if (args[0] == NULL)
 		{
@@ -129,18 +151,9 @@ int main()
 		}
 		else if (pid == 0)
 		{
-			if (access(args[0], X_OK) == 0)
+			if (execvp(args[0], args) == -1)
 			{
-				if (execve(args[0], args, NULL) == -1)
-				{
-					perror("Error");
-					free(args);
-					exit(EXIT_FAILURE);
-				}
-			}
-			else
-			{
-				fprintf(stderr, "Command not found\n");
+				perror("Error");
 				free(args);
 				exit(EXIT_FAILURE);
 			}
@@ -149,90 +162,18 @@ int main()
 		{
 			waitpid(pid, &status, 0);
 
-			if (WIFEXITED(status))
-			{
-			}
-			else
+			if (!WIFEXITED(status))
 			{
 				fprintf(stderr, "Command execution failed\n");
 			}
 
+			for (i = 0; args[i] != NULL; i++)
+			{
+				free(args[i]);
+			}
 			free(args);
 		}
 	}
 
 	return 0;
-}
-
-void display_prompt()
-{
-	write(STDOUT_FILENO, "$ ", 2);
-}
-
-/**
- * parse_input - This handles the cd command and conditio	ns
- * @input: the input to be parsed
- * @arg_count: Number of arguments passed
- *
- * Return: on success, 0
- * else -1 is returned and the errno is set appropriately
- */
-
-char **parse_input(char *input, size_t *arg_count)
-{
-	char **args = NULL;
-	char *token = _strtok(input, " \n");
-
-	while (token != NULL)
-	{
-		char **temp = realloc(args, (*arg_count + 1) * sizeof(char *));
-
-		if (temp == NULL)
-		{
-			perror("bash: realloc");
-			exit(EXIT_FAILURE);
-		}
-
-		args = temp;
-		args[*arg_count] = malloc(strlen(token) + 1);
-
-		if (args[*arg_count] == NULL)
-		{
-			perror("bash: malloc:");
-			exit(EXIT_FAILURE);
-		}
-
-		_strcpy(args[*arg_count], token);
-		(*arg_count)++;
-		token = _strtok(NULL, " \n");
-	}
-
-	return (args);
-}
-
-char **get_input(void)
-{
-	ssize_t response;
-	size_t arg_count = 0, len = 0;
-	char *input = NULL, **args = NULL;
-
-	/* write(STDOUT_FILENO, "$ ", 2); */
-	response = _getline(&input, &len, stdin);
-
-	if (response == (ssize_t)-1)
-	{
-		free(input);
-		exit(EXIT_FAILURE);
-	}
-	else if (response == 0)
-	{
-		free(input);
-		exit(EXIT_SUCCESS);
-	}
-
-	args = parse_input(input, &arg_count);
-
-	free(input);
-
-	return args;
 }

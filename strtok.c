@@ -16,7 +16,7 @@ char *_strtok(char *str, const char *delim)
 		last = str;
 
 	if (last == NULL || *last == '\0')
-		return NULL;
+		return (NULL);
 
 	token = last;
 
@@ -26,5 +26,5 @@ char *_strtok(char *str, const char *delim)
 	if (*last != '\0')
 		*last++ = '\0';
 
-	return token;
+	return (token);
 }
