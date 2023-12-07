@@ -7,9 +7,10 @@
  *
  * Return: Pointer to the next token or NULL if there are no more tokens
  */
+
 char *_strtok(char *str, const char *delim)
 {
-	static char *last = NULL;
+	char *last = NULL;
 	char *token;
 
 	if (str != NULL)
