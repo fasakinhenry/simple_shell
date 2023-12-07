@@ -7,6 +7,11 @@
 
 #define INITIAL_BUFFER_SIZE 1024
 
+/**
+ * _strcpy - custom strcpy function
+ * @dest: The destination pointer
+ * @src: The source pointer
+*/
 char *_strcpy(char *dest, const char *src)
 {
 	char *ptr = dest;
@@ -17,6 +22,12 @@ char *_strcpy(char *dest, const char *src)
 	return ptr;
 }
 
+/**
+ * _getline - Custom getline function to handle user input
+ * @lineptr: Pointer which points to the line
+ * @n: 
+ * 
+*/
 ssize_t _getline(char **lineptr, size_t *n, FILE *stream)
 {
 	size_t bufsize = 0;
