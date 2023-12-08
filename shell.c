@@ -28,7 +28,7 @@ int main(void)
 			continue;
 		}
 
-		if (strcmp(*args, "exit") == 0)
+		if (_strcmp(*args, "exit") == 0)
 			break;
 		pid = fork();
 
