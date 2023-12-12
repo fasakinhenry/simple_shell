@@ -15,7 +15,9 @@ int main(void)
 
 	while (1)
 	{
-		display_prompt();
+		/* check if shell is in interactive mode */
+		if (isatty(STDIN_FILENO) == 1)
+			display_prompt();
 
 		args = get_input();
 
