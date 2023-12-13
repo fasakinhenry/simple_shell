@@ -1,72 +1,79 @@
 #include "main.h"
 
+
+#define MAX_ARG 64
+
 /**
- * main - a function that interpretes unix-like shell command
+ * main - function that serves as a custom unix-like shell.
  * Return: returns 0 on success.
  */
 
-int main(void);
 int main(void)
 {
-	char **args;
-	pid_t pid;
-	int status;
-	size_t i;
+	/* char input[MAX_INPUT]; */
 
 	while (1)
 	{
-		/* check if shell is in interactive mode */
+		pid_t pid;
+		char *line = NULL;
+		size_t n = 0;
+		ssize_t char_read;
+		char *argv[MAX_ARG];
+		char *token = NULL;
+		int status, i = 0;
+
+		/* read user input and check if nothing was read */
+
+		/*check if shell is in interactive mode */
 		if (isatty(STDIN_FILENO) == 1)
 			display_prompt();
 
-		args = get_input();
-
-		if (args == NULL)
-			continue;
-
-		if (args[0] == NULL)
+		char_read = _getline(&line, &n, stdin);
+		if (char_read == -1)
 		{
-			free(args);
-			continue;
+			perror("error.\n");
+			free(line);
+			exit(EXIT_FAILURE);
 		}
 
-		if (_strcmp(*args, "exit") == 0)
+		/* exit the shell if user enters exit */
+
+		if (strcmp(line, "exit") == 0)
 			break;
+		/* fork a child process and check if fork was successful */
 		pid = fork();
 
 		if (pid == -1)
 		{
-			perror("Fork failed");
-			free(args);
+			perror("fork failure.\n");
+			free(line);
 			exit(EXIT_FAILURE);
 		}
-		else if (pid == 0)
+		if (pid == 0)
 		{
-			/* get environment variables */
-			extern char **environ;
-
-			if (execve(args[0], args, environ) == -1)
+			/* child process: tokenize to get command and its path */
+			token = strtok(line, " \t\n");
+			while (token != NULL && i < MAX_ARG - 1)
 			{
-				perror("Error");
-				free(args);
-				exit(EXIT_FAILURE);
+				argv[i] = token;
+				token = strtok(NULL, "  \t\n");
+				i++;
 			}
+			argv[i] = NULL;
+
+			execute(argv);
 		}
 		else
 		{
-			waitpid(pid, &status, 0);
-
-			if (!WIFEXITED(status))
+			/* parent process */
+			if (waitpid(pid, &status, 0) == -1)
 			{
-				fprintf(stderr, "Command execution failed\n");
+				perror("waitpid failure.\n");
+				free(line);
+				exit(EXIT_FAILURE);
 			}
-
-			for (i = 0; args[i] != NULL; i++)
-			{
-				free(args[i]);
-			}
-			free(args);
 		}
+		free(line);
 	}
 
 	return (0);

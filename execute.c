@@ -4,7 +4,7 @@
  * execute - a function thats execute a shell program
  * @argv: var name
  * Return: void
- */ 
+ */
 void execute(char **argv)
 {
 	char *cmd = NULL, *actual_cmd = NULL;
