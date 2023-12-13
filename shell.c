@@ -36,11 +36,6 @@ int main(void)
 			free(line);
 			exit(EXIT_FAILURE);
 		}
-
-		/* exit the shell if user enters exit */
-
-		if (strcmp(line, "exit") == 0)
-			break;
 		/* fork a child process and check if fork was successful */
 		pid = fork();
 
@@ -61,7 +56,7 @@ int main(void)
 				i++;
 			}
 			argv[i] = NULL;
-
+			/* execute command */
 			execute(argv);
 		}
 		else
