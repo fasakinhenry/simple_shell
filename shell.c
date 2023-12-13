@@ -1,6 +1,5 @@
 #include "main.h"
 
-
 #define MAX_ARG 64
 
 /**
@@ -15,6 +14,7 @@ int main(void)
 
 	while (1)
 	{
+		/* variable declarations */
 		pid_t pid;
 		char *line = NULL;
 		size_t n = 0;
@@ -38,9 +38,13 @@ int main(void)
 		}
 
 		/* exit the shell if user enters exit */
-
-		if (strcmp(line, "exit") == 0)
+		if (_strcmp(line, "exit") == 0)
 			break;
+		else if (_strcmp(line, "env") == 0)
+		{
+			print_environment();
+			continue;
+		}
 		/* fork a child process and check if fork was successful */
 		pid = fork();
 
