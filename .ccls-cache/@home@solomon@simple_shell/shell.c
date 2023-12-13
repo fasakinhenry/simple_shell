@@ -43,7 +43,7 @@ int main(void)
 		else if (pid == 0)
 		{
 			/* get environment variables */
-			/*extern char **environ;*/
+			extern char **environ;
 
 			if (execve(args[0], args, environ) == -1)
 			{
