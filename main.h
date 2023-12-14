@@ -28,5 +28,5 @@ char *_strtok(char *str, const char *delim);
 int _strcmp(char *str1, char *str2);
 char *locate_cmd(char *cmd);
 void execute(char **argv);
-void print_environment(void);
+int print_environment(void);
 #endif
