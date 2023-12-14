@@ -37,18 +37,10 @@ int main(void)
 			exit(EXIT_FAILURE);
 		}
 
-		token = strtok(line, " \t\n");
-		while (token != NULL && i < MAX_ARG - 1)
-		{
-			argv[i] = token;
-			token = strtok(NULL, "  \t\n");
-			i++;
-		}
-		argv[i] = NULL;
 		/* exit the shell if user enters exit */
-		if (_strcmp(argv[0], "exit") == 0)
+		if (_strcmp(line, "exit") == 0)
 			break;
-		else if (_strcmp(argv[0], "env") == 0)
+		else if (_strcmp(line, "env") == 0)
 		{
 			print_environment();
 			continue;
@@ -64,6 +56,15 @@ int main(void)
 		}
 		if (pid == 0)
 		{
+			/* child process: tokenize to get command and its path */
+			token = strtok(line, " \t\n");
+			while (token != NULL && i < MAX_ARG - 1)
+			{
+				argv[i] = token;
+				token = strtok(NULL, "  \t\n");
+				i++;
+			}
+			argv[i] = NULL;
 			/* execute command */
 			execute(argv);
 		}
