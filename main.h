@@ -11,6 +11,8 @@
 #include <errno.h>
 #include <limits.h>
 
+extern char **environ;
+
 #define MAX_ARG 64
 #define INITIAL_BUFFER_SIZE 1024
 #define MAX_LINE 256
@@ -26,5 +28,5 @@ char *_strtok(char *str, const char *delim);
 int _strcmp(char *str1, char *str2);
 char *locate_cmd(char *cmd);
 void execute(char **argv);
-
+void print_environment(void);
 #endif
