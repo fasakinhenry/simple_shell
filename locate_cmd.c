@@ -32,10 +32,10 @@ char *locate_cmd(char *cmd)
 		}
 
 		/* get the length of the command */
-		command_len = strlen(cmd);
+		command_len = _strlen(cmd);
 
 		/* break down the path_cpy var int toks */
-		path_token = strtok(path_cpy, ":");
+		path_token = _strtok(path_cpy, ":");
 		while (path_token != NULL)
 		{
 			/* get dir_len */
@@ -62,7 +62,7 @@ char *locate_cmd(char *cmd)
 
 			free(file_path);
 
-			path_token = strtok(NULL, ":");
+			path_token = _strtok(NULL, ":");
 		}
 
 		/*free(file_path);*/

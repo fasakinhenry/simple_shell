@@ -37,11 +37,11 @@ int main(void)
 			exit(EXIT_FAILURE);
 		}
 
-		token = strtok(line, " \t\n");
+		token = _strtok(line, " \t\n");
 		while (token != NULL && i < MAX_ARG - 1)
 		{
 			argv[i] = token;
-			token = strtok(NULL, "  \t\n");
+			token = _strtok(NULL, "  \t\n");
 			i++;
 		}
 		argv[i] = NULL;
