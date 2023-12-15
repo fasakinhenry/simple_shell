@@ -1,79 +1,62 @@
 #include "main.h"
-
-#define READSIZE 2048
+#define INITIAL_BUFFER_SIZE 1024
 /**
- * _getline - Reads input from a stream
- * @linept: A buffer for input
- * @n: The size of the pointer
- * @stream: The stream
- *
- * Return: number of bytes read
+ * _getline - a func that reads a line from stdin or a stream
+ * @lineptr: a double ptr to a char set to the first char of the line
+ * @n: a pointer set to the length of the line
+ * @stream: a pointer to a file object.
+ * Return: return no of chars read
  */
-ssize_t _getline(char **linept, size_t *n, FILE *stream);
 
-ssize_t _getline(char **linept, size_t *n, FILE *stream)
+ssize_t _getline(char **lineptr, size_t *n, FILE *stream);
+ssize_t _getline(char **lineptr, size_t *n, FILE *stream)
 {
-	static char buffer[READSIZE];
-	static size_t buffer_pos = 0;
-	static size_t buffer_size = 0;
-	size_t pos = 0;
+	size_t bufsize = 0;
+	ssize_t chars_read = 0;
 	int c;
-	/*char *temp = NULL;*/
 
-	if (linept == NULL || n == NULL || stream == NULL)
-	{
+	if (lineptr == NULL || n == NULL)
 		return (-1);
-	}
 
-	/* allocate size and resize if necessary */
-	if (*linept == NULL && *n == 0)
+	if (*lineptr == NULL || *n == 0)
 	{
-		*n = 128;
-		*linept = (char *)malloc(*n);
-		if (*linept == NULL)
+		bufsize = INITIAL_BUFFER_SIZE;
+		*lineptr = malloc(bufsize);
+
+		if (*lineptr == NULL)
 		{
-			return (-1);
+			perror("Failed to allocate memory");
+			exit(EXIT_FAILURE);
 		}
+
+		*n = bufsize;
 	}
 
-	while (1)
+	while ((c = fgetc(stream)) != EOF)
 	{
+		(*lineptr)[chars_read++] = (char)c;
 
-		/* resize buffer */
-		if (buffer_pos >= buffer_size)
+		if (chars_read == (ssize_t)(*n - 1))
 		{
-			buffer_size = read(STDIN_FILENO, buffer, READSIZE);
-			buffer_pos = 0;
+			char *temp = realloc(*lineptr, bufsize + INITIAL_BUFFER_SIZE);
 
-			if (buffer_size == 0)
+			if (temp == NULL)
 			{
-				if (pos == 0)
-					return (-1);
-				break;
+				perror("Failed to reallocate memory");
+				exit(EXIT_FAILURE);
 			}
-			else if (buffer_size <= 0)
-				return (-1);
+
+			*lineptr = temp;
+			*n += INITIAL_BUFFER_SIZE;
 		}
 
-		c = buffer[buffer_pos++];
-
-		if (c == '\n' || c == EOF)
-		{
+		if (c == '\n')
 			break;
-		}
-
-		/* resize buffer if necessary */
-		if (pos >= *n - 1)
-		{
-			*n = *n * 2;
-			*linept = (char *)realloc(*linept, *n);
-			if (*linept == NULL)
-			{
-				return (-1);
-			}
-		}
-		(*linept)[pos++] = (char)c;
 	}
-	(*linept)[pos] = '\0';
-	return (pos);
+
+	if (chars_read == 0)
+		return (0);
+
+	(*lineptr)[chars_read] = '\0';
+	return (chars_read);
 }
