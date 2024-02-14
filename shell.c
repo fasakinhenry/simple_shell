@@ -1,12 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include "main.h"
 
-#define INITIAL_BUFFER_SIZE 1024
+#define MAX_ARG 64
 
+/**
+<<<<<<< HEAD
+ * _strcpy - custom strcpy function
+ * @dest: The destination pointer
+ * @src: The source pointer
+*/
 char *_strcpy(char *dest, const char *src)
 {
 	char *ptr = dest;
@@ -17,6 +18,12 @@ char *_strcpy(char *dest, const char *src)
 	return ptr;
 }
 
+/**
+ * _getline - Custom getline function to handle user input
+ * @lineptr: Pointer which points to the line
+ * @n: 
+ * 
+*/
 ssize_t _getline(char **lineptr, size_t *n, FILE *stream)
 {
 	size_t bufsize = 0;
@@ -125,55 +132,84 @@ int main()
 	pid_t pid;
 	int status;
 	size_t i;
+=======
+ * main - function that serves as a custom unix-like shell.
+ * Return: returns 0 on success.
+ */
+
+int main(void);
+int main(void)
+{
+	/* char input[MAX_INPUT]; */
+>>>>>>> 2852ef17d72f6092750f415cc71e629a8000846a
 
 	while (1)
 	{
-		display_prompt();
+		/* variable declarations */
+		pid_t pid;
+		char *line = NULL;
+		size_t n = 0;
+		ssize_t char_read;
+		char *argv[MAX_ARG];
+		char *token = NULL;
+		int status, i = 0;
 
-		args = get_input();
+		/* read user input and check if nothing was read */
 
-		if (args == NULL)
-			continue;
+		/*check if shell is in interactive mode */
+		if (isatty(STDIN_FILENO) == 1)
+			display_prompt();
 
-		if (args[0] == NULL)
+		char_read = _getline(&line, &n, stdin);
+		if (char_read == -1)
 		{
-			free(args);
-			continue;
+			perror("error.\n");
+			free(line);
+			exit(EXIT_FAILURE);
 		}
 
+		token = _strtok(line, " \t\n");
+		while (token != NULL && i < MAX_ARG - 1)
+		{
+			argv[i] = token;
+			token = _strtok(NULL, "  \t\n");
+			i++;
+		}
+		argv[i] = NULL;
+		/* exit the shell if user enters exit */
+		if (_strcmp(argv[0], "exit") == 0)
+			break;
+		else if (_strcmp(argv[0], "env") == 0)
+		{
+			print_environment();
+			continue;
+		}
+		/* fork a child process and check if fork was successful */
 		pid = fork();
 
 		if (pid == -1)
 		{
-			perror("Fork failed");
-			free(args);
+			perror("fork failure.\n");
+			free(line);
 			exit(EXIT_FAILURE);
 		}
-		else if (pid == 0)
+		if (pid == 0)
 		{
-			if (execvp(args[0], args) == -1)
-			{
-				perror("Error");
-				free(args);
-				exit(EXIT_FAILURE);
-			}
+			/* execute command */
+			execute(argv);
 		}
 		else
 		{
-			waitpid(pid, &status, 0);
-
-			if (!WIFEXITED(status))
+			/* parent process */
+			if (waitpid(pid, &status, 0) == -1)
 			{
-				fprintf(stderr, "Command execution failed\n");
+				perror("waitpid failure.\n");
+				free(line);
+				exit(EXIT_FAILURE);
 			}
-
-			for (i = 0; args[i] != NULL; i++)
-			{
-				free(args[i]);
-			}
-			free(args);
 		}
+		free(line);
 	}
 
-	return 0;
+	return (0);
 }
